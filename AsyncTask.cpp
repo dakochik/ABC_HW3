@@ -1,9 +1,11 @@
 ﻿#include <omp.h>
+#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <utility>
 #include <vector>
 #include <cmath>
+#include <ctime>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -12,21 +14,24 @@ std::pair<int, int> countIndexes(std::vector<long> array)
 {
 	std::pair<int, int> res;
 	long long highestScore = NULL;
-#pragma omp parallel for
-	for (int i = 0; i < array.size(); i++)
+#pragma omp parallel
 	{
-		for (int y = i + 1; y < array.size(); ++y)
+#pragma omp for
+		for (int i = 0; i < array.size(); i++)
 		{
-			long long sum = array[i];
-			for (int j = i + 1; j <= y; ++j)
+			for (int y = i + 1; y < array.size(); ++y)
 			{
-				sum += static_cast<long long>(array[j]) * static_cast<long long>(pow(-1, j - i));
-			}
+				long long sum = array[i];
+				for (int j = i + 1; j <= y; ++j)
+				{
+					sum += static_cast<long long>(array[j]) * static_cast<long long>(pow(-1, j - i));
+				}
 #pragma omp critical
-			if ((highestScore == NULL) || (sum > highestScore))
-			{
-				res = std::pair<int, int>(i, y);
-				highestScore = sum;
+				if ((highestScore == NULL) || (sum > highestScore))
+				{
+					res = std::pair<int, int>(i, y);
+					highestScore = sum;
+				}
 			}
 		}
 	}
@@ -46,9 +51,9 @@ int main(int argc, char* argv[])
 		vect.push_back(std::stol(vecStr));
 	}
 	in.close();
-
+	
 	std::pair<int, int> result = countIndexes(vect);
-
+	
 	std::ofstream out;
 	out.open(argv[2]);
 	out << result.first << std::endl;
